@@ -1,4 +1,12 @@
-Additional components to use esphome with a M5StickC.  
+Extending esphome-m5stickc by airy/geiseri base to support more displays.
+Hampered by lack of displays for testing.
+The .yaml config now includes a  `model: redtab,greentab,blacktab, ...`. 
+
+Only `blacktabex` is tested. The other have `setup()` sequences derived from the Ur display code (Adafruit) or
+the projects this was forked from.
+
+To quote:
+
 Mostly a work in progress.  
 Copy the components to a `custom_components` directory next to your .yaml configuration file.
 
