@@ -117,6 +117,7 @@ font:
 # builtin 80x160 TFT
 display:
   - platform: st7735
+    model: m5stickc
     cs_pin: GPIO5
     dc_pin: GPIO23
     reset_pin: GPIO18
