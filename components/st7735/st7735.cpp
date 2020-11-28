@@ -114,7 +114,15 @@ static const uint8_t PROGMEM
         0xC8,                         //     row/col addr, bottom-top refresh
         ST77XX_COLMOD,  1,              // 15: set color mode, 1 arg, no delay:
         0x05 },                       //     16-bit color
-
+  Rcmd2red[] = {              // Init for 7735R, part 2 (red tab only)
+    2,                        //  2 commands in list:
+    ST7735_CASET  , 4      ,  //  1: Column addr set, 4 args, no delay:
+      0x00, 0x00,             //     XSTART = 0
+      0x00, 0x7F,             //     XEND = 127
+    ST7735_RASET  , 4      ,  //  2: Row addr set, 4 args, no delay:
+      0x00, 0x00,             //     XSTART = 0
+      0x00, 0x9F },           //     XEND = 159
+  
     Rcmd2green[] = {                  // 7735R init, part 2 (green tab only)
         2,                              //  2 commands in list:
         ST77XX_CASET,   4,              //  1: Column addr set, 4 args, no delay:
@@ -150,31 +158,33 @@ static const uint8_t PROGMEM
 
 static const char *TAG = "st7735";
 
-void ST7735::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up SPI ST7735...");
+void ST7735::commonSetup() {
   this->spi_setup();
   this->dc_pin_->setup();  // OUTPUT
-
   this->init_reset_();
-  
-  this->displayInit(Rcmd1);
-  this->displayInit(Rcmd2green);
-  this->displayInit(Rcmd3);
-  this->writecommand(ST7735_INVON);
+}
 
-  delay(120);
-
+void ST7735::commonCompleteSetup() {
   this->writecommand(ST7735_DISPON);    //Display on
   delay(120);
-  
   this->init_internal_(this->get_buffer_length_());
   memset(this->buffer_, 0x00, this->get_buffer_length_());
 }
 
+void ST7735::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up SPI ST7735 Blacktab 128x160...");
+  this->commonSetup();
+  // Black tab
+  this->displayInit(Rcmd1);
+  this->writecommand(ST7735_MADCTL);
+  this->writedata(0xC0);  //uint8_t data = 0xC0;
+  this->commonCompleteSetup();
+}
+
 void ST7735::write_display_data() {
   
-  uint16_t offsetx = 26; 
-  uint16_t offsety = 1; 
+  uint16_t offsetx = get_xoffset_internal(); 
+  uint16_t offsety = get_yoffset_internal();
 
   uint16_t x1 = offsetx;
   uint16_t x2 = x1 + get_width_internal()-1;
@@ -239,7 +249,9 @@ void ST7735::dump_config() {
   LOG_PIN("  CS Pin: ", this->cs_);
   LOG_PIN("  DC Pin: ", this->dc_pin_);
   LOG_PIN("  Reset Pin: ", this->reset_pin_);
-  LOG_UPDATE_INTERVAL(this);
+  LOG_UPDATE_INTERVAL(this);    
+  //ESP_LOGCONFIG("", "  width: %d height: %d" , this->get_width_internal(),  this->get_height_internal());
+  //ESP_LOGCONFIG("", "  offx: %d offy: %d" , this->get_xoffset_internal(),  this->get_yoffset_internal());
 }
 
 float ST7735::get_setup_priority() const { 
@@ -256,11 +268,19 @@ void ST7735::loop() {
 }
 
 int ST7735::get_width_internal() {
-	return 80;
+	return 128;
 }
 
 int ST7735::get_height_internal() {
 	return 160;
+}
+
+int ST7735::get_xoffset_internal() {
+	return 0;
+}
+
+int ST7735::get_yoffset_internal() {
+	return 0;
 }
 
 size_t ST7735::get_buffer_length_() {
@@ -344,6 +364,107 @@ void ST7735::senddata(const uint8_t* dataBytes, uint8_t numDataBytes) {
   this->disable();
 
 }
+void ST7735Blacktab_128_160::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up SPI ST7735 Blacktab 128x160...");
+  this->commonSetup();
+  // Black tab
+  this->displayInit(Rcmd1);
+  this->writecommand(ST7735_MADCTL);
+  this->writedata(0xC0);  //uint8_t data = 0xC0;
+  this->commonCompleteSetup();
+}
+int ST7735Blacktab_128_160::get_width_internal() {
+	return 128;
+}
+
+int ST7735Blacktab_128_160::get_height_internal() {
+	return 160;
+}
+
+int ST7735Blacktab_128_160::get_xoffset_internal() {
+	return 0;
+}
+
+int ST7735Blacktab_128_160::get_yoffset_internal() {
+	return 0;
+}
+
+void ST7735M5StickC::setup() {
+  this->commonSetup();
+  this->displayInit(Rcmd1);
+  this->displayInit(Rcmd2green);
+  this->displayInit(Rcmd3);
+  this->writecommand(ST7735_INVON);
+  delay(120);
+  this->commonCompleteSetup();
+}
+
+int ST7735M5StickC::get_width_internal() {
+	return 80;
+}
+
+int ST7735M5StickC::get_height_internal() {
+	return 160;
+}
+
+int ST7735M5StickC::get_xoffset_internal() {
+	return 25;
+}
+
+int ST7735M5StickC::get_yoffset_internal() {
+	return 1;
+}
+
+void ST7735Redtab::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up SPI ST7735 Redtab...");
+  this->commonSetup();
+  this->displayInit(Rcmd1);
+  this->displayInit(Rcmd2red);
+  this->displayInit(Rcmd3);
+  this->commonCompleteSetup();
+}
+
+int ST7735Redtab::get_width_internal() {
+	return 128;
+}
+
+int ST7735Redtab::get_height_internal() {
+	return 160;
+}
+
+int ST7735Redtab::get_xoffset_internal() {
+	return 0;
+}
+
+int ST7735Redtab::get_yoffset_internal() {
+	return 0;
+}
+
+void ST7735Greentab::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up SPI ST7735 Greentab...");
+  this->commonSetup();
+  this->displayInit(Rcmd1);
+  this->displayInit(Rcmd2green);
+  this->displayInit(Rcmd3);
+  this->commonCompleteSetup();
+}
+
+int ST7735Greentab::get_width_internal() {
+	return 128;
+}
+
+int ST7735Greentab::get_height_internal() {
+	return 160;
+}
+
+int ST7735Greentab::get_xoffset_internal() {
+	return 2;
+}
+
+int ST7735Greentab::get_yoffset_internal() {
+	return 1;
+}
+
 
 }  // namespace st7735
 }  // namespace esphome

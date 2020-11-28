@@ -80,6 +80,11 @@
 #define ST7735_NVMSET		0xFC      // NVM setting
 #define ST7735_PROMACT		0xFE      // Program action
 
+#define ST7735_TFTWIDTH_128 128  // for 1.44 and mini
+#define ST7735_TFTWIDTH_80 80    // for mini
+#define ST7735_TFTHEIGHT_128 128 // for 1.44" display
+#define ST7735_TFTHEIGHT_160 160 // for 1.8" and mini display
+
 namespace esphome {
 namespace st7735 {
 
@@ -144,13 +149,15 @@ class ST7735 : public PollingComponent, public display::DisplayBuffer,
   float get_setup_priority() const override;
   void update() override;
   void loop() override;
-  
+
   void write_display_data();
   
  protected:
   GPIOPin *dc_pin_;
   GPIOPin *reset_pin_{nullptr};
-  
+
+  void commonSetup();
+  void commonCompleteSetup();
   void displayInit(const uint8_t *addr);
   void sendcommand(uint8_t cmd, const uint8_t* dataBytes, uint8_t numDataBytes);
   void senddata(const uint8_t* dataBytes, uint8_t numDataBytes);
@@ -166,7 +173,74 @@ class ST7735 : public PollingComponent, public display::DisplayBuffer,
 
   int get_height_internal() override;
   int get_width_internal() override;
+  int get_xoffset_internal() ;
+  int get_yoffset_internal() ;
   size_t get_buffer_length_();
+};
+
+enum ST7735Model {
+  BLACKTAB_128_160 = 0,  // The one I'm developing for
+  REDTAB = 1,            // Adafruit red
+  GREENTAB = 2,          // Adafruit green
+  BLACKTAB = 3,          // Adafruit black
+  GREENTAB_144 = 4,
+  MINI_160_80 = 5,
+  HALLOWING = 6,
+  M5STICKC = 7,
+};
+
+class ST7735Blacktab_128_160 : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
+};
+
+class ST7735Blacktab : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
+};
+
+class ST7735Mini_160_80 : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
+};
+
+class ST7735M5StickC : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
+};
+
+class ST7735Redtab : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
+};
+
+class ST7735Greentab : public ST7735 {
+ public:
+  void setup() override;
+  int get_width_internal() override;
+  int get_height_internal() override;
+  int get_xoffset_internal();
+  int get_yoffset_internal();
 };
 
 
